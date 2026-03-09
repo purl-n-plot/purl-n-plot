@@ -1,0 +1,132 @@
+{
+  "app": {
+    "title": "Purl & Plot",
+    "welcome": "Welcome to Purl & Plot ✨",
+    "startDesigning": "Start Designing"
+  },
+  "tools": {
+    "paint": "Paint",
+    "fill": "Fill",
+    "eraser": "Eraser",
+    "select": "Select",
+    "mirrorH": "Mirror horizontal",
+    "mirrorV": "Mirror vertical",
+    "undo": "Undo (Ctrl+Z)",
+    "redo": "Redo (Ctrl+Shift+Z)",
+    "copy": "Copy (Ctrl+C)",
+    "paste": "Paste (Ctrl+V)",
+    "tile": "Tile selection across grid",
+    "applyShaping": "Apply Shaping",
+    "applyShapingDesc": "Auto-fill no-stitch cells based on increases/decreases",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode"
+  },
+  "grid": {
+    "gridSize": "Grid Size",
+    "columns": "Columns",
+    "rows": "Rows",
+    "clearGrid": "Clear Grid"
+  },
+  "stitches": {
+    "stitchSymbols": "Stitch Symbols"
+  },
+  "colors": {
+    "yarnColors": "Yarn Colors",
+    "favorites": "Favorites",
+    "custom": "Custom",
+    "addCustomColor": "Add custom color",
+    "eyedropper": "Pick color from screen"
+  },
+  "storage": {
+    "patternName": "Pattern name",
+    "save": "Save",
+    "savedPatterns": "Saved Patterns",
+    "load": "Load",
+    "delete": "Delete",
+    "noSavedPatterns": "No saved patterns yet",
+    "importExport": "Import / Export",
+    "exportJSON": "Export .json",
+    "importJSON": "Import .json",
+    "exportPNG": "Export PNG",
+    "exportPDF": "Export PDF"
+  },
+  "notes": {
+    "patternNotes": "Pattern Notes",
+    "yarnWeight": "Yarn Weight",
+    "yarnBrand": "Yarn / Brand",
+    "colorway": "Colorway",
+    "needleSize": "Needle Size",
+    "gauge": "Gauge",
+    "finishedSize": "Finished Size",
+    "additionalNotes": "Additional Notes",
+    "notesPlaceholder": "Stitch pattern tips, modifications, etc."
+  },
+  "legend": {
+    "legend": "Legend",
+    "noSpecialStitches": "No special stitches used yet"
+  },
+  "help": {
+    "title": "Help & Shortcuts",
+    "gettingStarted": "Getting Started",
+    "keyboardShortcuts": "Keyboard Shortcuts",
+    "tips": {
+      "colorsStitches": "Colors & Stitches",
+      "colorsStitchesDesc": "78 yarn colors across 13 palettes including seasonal sets (Spring, Summer, Autumn, Winter). 40+ stitches in 8 categories: Basic, Slip, Texture, Decrease, Increase, Cable, Colorwork, and Brioche.",
+      "drawingTools": "Drawing Tools",
+      "drawingToolsDesc": "Use Paint (B), Fill (F), Eraser (E), or Select (S) mode from the toolbar or keyboard shortcuts. Toggle horizontal/vertical mirroring for symmetric designs.",
+      "patternRepeat": "Pattern Repeat/Tiling",
+      "patternRepeatDesc": "Select a rectangular region with the Select tool, then press T or click the Tile button to repeat the motif across the entire grid.",
+      "saveExport": "Save & Export",
+      "saveExportDesc": "Name your pattern, then save to browser storage or export as a .json file. Export charts as PNG images or PDF with legend and notes.",
+      "patternNotes": "Pattern Notes",
+      "patternNotesDesc": "Record yarn weight, needle size, gauge, and other project details. Notes are included in saved patterns and PDF exports.",
+      "stitchCount": "Stitch Count Validation",
+      "stitchCountDesc": "Rows with increases or decreases show a live +/− indicator next to the row number. Hover for details on active stitch count and net change.",
+      "applyShaping": "Apply Shaping",
+      "applyShapingDesc": "Automatically adjusts rows based on increases and decreases. Adds no-stitch padding at edges and fills missing stitches with knit. Expands the grid width if needed.",
+      "darkMode": "Dark Mode",
+      "darkModeDesc": "Toggle light/dark theme with the sun/moon button in the toolbar."
+    },
+    "shortcuts": {
+      "click": "Paint a cell with current stitch & color",
+      "drag": "Paint multiple cells by dragging",
+      "shiftDrag": "Select a rectangular region",
+      "copy": "Copy selected cells",
+      "paste": "Paste at cursor position",
+      "undo": "Undo",
+      "redo": "Redo",
+      "escape": "Clear selection & cursor",
+      "brushKey": "Switch to Brush (paint) tool",
+      "eraserKey": "Switch to Eraser tool",
+      "fillKey": "Switch to Fill (flood) tool",
+      "selectKey": "Switch to Select tool",
+      "tileKey": "Tile selection across grid"
+    }
+  },
+  "toasts": {
+    "shapingApplied": "Shaping applied",
+    "shapingAppliedDesc": "Rows adjusted with centered no-stitch placeholders.",
+    "copied": "Copied",
+    "copiedDesc": "{{rows}}×{{cols}} cells copied",
+    "pasted": "Pasted",
+    "pastedDesc": "{{rows}}×{{cols}} cells pasted",
+    "tiled": "Tiled",
+    "gridCleared": "Grid cleared",
+    "patternSaved": "Pattern saved",
+    "patternLoaded": "Pattern loaded",
+    "patternDeleted": "Pattern deleted",
+    "exportedPNG": "PNG exported",
+    "exportedPDF": "PDF exported",
+    "imported": "Pattern imported",
+    "invalidFile": "Invalid file"
+  },
+  "validation": {
+    "rowMismatch": "Row has {{actual}} active sts, expected {{expected}} (based on previous row + shaping)",
+    "rowOk": "{{count}} active sts",
+    "rowOkShaping": "{{count}} active sts • net {{change}} ({{direction}})",
+    "increase": "increase",
+    "decrease": "decrease"
+  }
+}
