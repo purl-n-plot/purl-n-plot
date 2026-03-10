@@ -58,11 +58,11 @@ function applyShaping(grid: CellData[][]): { result: CellData[][]; totalCols: nu
   });
 
   const expectedCounts = new Array(numRows);
-  expectedCounts[numRows - 1] = rowInfo[numRows - 1].cellCount;
+  expectedCounts[numRows - 1] = rowInfo[numRows - 1].cellCount + rowInfo[numRows - 1].netChange;
   let maxWidth = expectedCounts[numRows - 1];
 
   for (let i = numRows - 2; i >= 0; i--) {
-    expectedCounts[i] = expectedCounts[i + 1] + rowInfo[i + 1].netChange;
+    expectedCounts[i] = expectedCounts[i + 1] + rowInfo[i].netChange;
     maxWidth = Math.max(maxWidth, expectedCounts[i]);
   }
 
@@ -73,7 +73,25 @@ function applyShaping(grid: CellData[][]): { result: CellData[][]; totalCols: nu
   const result = grid.map((_, rowIdx) => {
     const { activeCells, oldColToActive } = rowInfo[rowIdx];
     const expected = expectedCounts[rowIdx];
-    const fillerCount = Math.max(0, expected - activeCells.length);
+
+    // Trim excess from edges if too many active cells
+    let usedCells = activeCells;
+    let usedOldColToActive = oldColToActive;
+    if (activeCells.length > expected) {
+      const excess = activeCells.length - expected;
+      const trimLeft = Math.floor(excess / 2);
+      const trimRight = excess - trimLeft;
+      usedCells = activeCells.slice(trimLeft, activeCells.length - trimRight);
+      usedOldColToActive = new Map<number, number>();
+      for (const [oldCol, activeIdx] of oldColToActive.entries()) {
+        const newIdx = activeIdx - trimLeft;
+        if (newIdx >= 0 && newIdx < usedCells.length) {
+          usedOldColToActive.set(oldCol, newIdx);
+        }
+      }
+    }
+
+    const fillerCount = Math.max(0, expected - usedCells.length);
     const fillerLeft = Math.floor(fillerCount / 2);
     const fillerRight = fillerCount - fillerLeft;
 
@@ -81,10 +99,10 @@ function applyShaping(grid: CellData[][]): { result: CellData[][]; totalCols: nu
     for (let i = 0; i < fillerLeft; i++) contentCells.push({ color: DEFAULT_BG, stitchId: "knit" });
 
     const activeOffset = fillerLeft;
-    for (let i = 0; i < activeCells.length; i++) {
-      const cell = { ...activeCells[i] };
+    for (let i = 0; i < usedCells.length; i++) {
+      const cell = { ...usedCells[i] };
       if (cell.spanOwner !== undefined) {
-        const ownerActiveIdx = oldColToActive.get(cell.spanOwner);
+        const ownerActiveIdx = usedOldColToActive.get(cell.spanOwner);
         cell.spanOwner = ownerActiveIdx !== undefined ? ownerActiveIdx + activeOffset : activeOffset + i;
       }
       contentCells.push(cell);
@@ -137,16 +155,22 @@ describe("Apply Shaping", () => {
     placeStitch(grid, 2, 0, "k2tog", "#FFF"); // bottom row, net -1
 
     const { result } = applyShaping(grid);
-    // Bottom row output = 6 + (-1) = 5, so row above (index 1) expects 5 active
-    // Row 1 had 6 active, so no filler needed, but it keeps 6
-    // Row 0 expects row 1's output: 6 + 0 = 6
-    // The top row should have active stitches, middle row active, bottom row active
+    // Bottom row: 6 active, net -1 → output 5, so bottom row itself shows 5 active
     for (const row of result) {
       expect(row.length).toBe(6);
     }
+    // Bottom row should have 5 active (trimmed to output count)
+    const bottomActive = countActive(result[2]);
+    expect(bottomActive).toBe(5);
+    // Row 1 should have 5 active
+    const row1Active = countActive(result[1]);
+    expect(row1Active).toBe(5);
+    // Row 0 should also have 5 active
+    const row0Active = countActive(result[0]);
+    expect(row0Active).toBe(5);
     // Bottom row should still have k2tog
-    const bottomActive = result[2].filter((c) => c.stitchId !== "none");
-    expect(bottomActive.some((c) => c.stitchId === "k2tog")).toBe(true);
+    const bottomStitches = result[2].filter((c) => c.stitchId !== "none");
+    expect(bottomStitches.some((c) => c.stitchId === "k2tog")).toBe(true);
   });
 
   it("expands grid and fills knit for increase rows", () => {
@@ -175,9 +199,9 @@ describe("Apply Shaping", () => {
 
   it("handles mixed increases and decreases", () => {
     // 3 rows, 6 cols
-    // Bottom row: has YO (+1) → output 7
-    // Middle row: should have 7 active, has k2tog (-1) → output 6
-    // Top row: should have 6 active
+    // Bottom row: has YO (+1) → output 7, bottom shows 7 active
+    // Middle row: expected = 7 + (-1) = 6 active
+    // Top row: expected = 6 + 0 = 6 active
     const grid = createGrid(3, 6);
     placeStitch(grid, 2, 0, "yo", "#FFF");   // bottom: net +1
     placeStitch(grid, 1, 0, "k2tog", "#FFF"); // middle: net -1
@@ -185,11 +209,15 @@ describe("Apply Shaping", () => {
     const { result, totalCols } = applyShaping(grid);
     expect(totalCols).toBeGreaterThanOrEqual(7);
 
-    // Middle row should have 7 active (6 original + 1 filler from increase below)
-    const midActive = countActive(result[1]);
-    expect(midActive).toBe(7);
+    // Bottom row shows 7 active (6 original + 1 filler)
+    const bottomActive = countActive(result[2]);
+    expect(bottomActive).toBe(7);
 
-    // Top row: middle has 7 active, net -1 → expects 6
+    // Middle row should have 6 active
+    const midActive = countActive(result[1]);
+    expect(midActive).toBe(6);
+
+    // Top row should have 6 active
     const topActive = countActive(result[0]);
     expect(topActive).toBe(6);
   });
