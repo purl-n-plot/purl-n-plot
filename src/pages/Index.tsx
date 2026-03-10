@@ -182,11 +182,12 @@ const Index = () => {
 
       // Calculate expected cell counts bottom-to-top
       const expectedCounts = new Array(numRows);
-      expectedCounts[numRows - 1] = rowInfo[numRows - 1].cellCount;
+      // Each row's expected count = its OUTPUT (after its own inc/dec)
+      expectedCounts[numRows - 1] = rowInfo[numRows - 1].cellCount + rowInfo[numRows - 1].netChange;
       let maxWidth = expectedCounts[numRows - 1];
 
       for (let i = numRows - 2; i >= 0; i--) {
-        expectedCounts[i] = expectedCounts[i + 1] + rowInfo[i + 1].netChange;
+        expectedCounts[i] = expectedCounts[i + 1] + rowInfo[i].netChange;
         maxWidth = Math.max(maxWidth, expectedCounts[i]);
       }
 
@@ -201,8 +202,26 @@ const Index = () => {
         const { activeCells, oldColToActive } = rowInfo[rowIdx];
         const expected = expectedCounts[rowIdx];
 
-        // If this row has fewer active cells than expected, add knit stitches to fill the gap
-        const fillerCount = Math.max(0, expected - activeCells.length);
+        // Determine which active cells to use — trim if too many, fill if too few
+        let usedCells = activeCells;
+        let usedOldColToActive = oldColToActive;
+        if (activeCells.length > expected) {
+          // Trim excess from edges symmetrically
+          const excess = activeCells.length - expected;
+          const trimLeft = Math.floor(excess / 2);
+          const trimRight = excess - trimLeft;
+          usedCells = activeCells.slice(trimLeft, activeCells.length - trimRight);
+          // Rebuild oldColToActive mapping for the trimmed cells
+          usedOldColToActive = new Map<number, number>();
+          for (const [oldCol, activeIdx] of oldColToActive.entries()) {
+            const newIdx = activeIdx - trimLeft;
+            if (newIdx >= 0 && newIdx < usedCells.length) {
+              usedOldColToActive.set(oldCol, newIdx);
+            }
+          }
+        }
+
+        const fillerCount = Math.max(0, expected - usedCells.length);
         const fillerLeft = Math.floor(fillerCount / 2);
         const fillerRight = fillerCount - fillerLeft;
 
@@ -211,10 +230,10 @@ const Index = () => {
         for (let i = 0; i < fillerLeft; i++) contentCells.push({ color: DEFAULT_BG, stitchId: "knit" });
 
         const activeOffset = fillerLeft; // where active cells start in contentCells
-        for (let i = 0; i < activeCells.length; i++) {
-          const cell = { ...activeCells[i] };
+        for (let i = 0; i < usedCells.length; i++) {
+          const cell = { ...usedCells[i] };
           if (cell.spanOwner !== undefined) {
-            const ownerActiveIdx = oldColToActive.get(cell.spanOwner);
+            const ownerActiveIdx = usedOldColToActive.get(cell.spanOwner);
             cell.spanOwner = ownerActiveIdx !== undefined ? ownerActiveIdx + activeOffset : activeOffset + i;
           }
           contentCells.push(cell);
@@ -592,7 +611,7 @@ const Index = () => {
     // Draw all cell backgrounds and grid lines
     grid.forEach((row, ri) =>
       row.forEach((cell, ci) => {
-        const isNoStitch = cell.stitchId === "none" && cell.color !== DEFAULT_BG;
+        const isNoStitch = cell.stitchId === "none";
         ctx.fillStyle = isNoStitch ? "#C8C4BE" : cell.color;
         ctx.fillRect(offsetX + ci * scale, offsetY + ri * scale, scale, scale);
         ctx.strokeStyle = "#D0D0D0";
@@ -615,7 +634,7 @@ const Index = () => {
           ci++;
           continue;
         }
-        const isNoStitch = cell.stitchId === "none" && cell.color !== DEFAULT_BG;
+        const isNoStitch = cell.stitchId === "none";
         if (isNoStitch || (cell.stitchId !== "none" && cell.stitchId !== "knit")) {
           const span = getStitchSpan(cell.stitchId);
           const totalWidth = Math.min(span, row.length - ci) * scale;
@@ -698,7 +717,7 @@ const Index = () => {
 
     grid.forEach((row, ri) =>
       row.forEach((cell, ci) => {
-        const isNo = cell.stitchId === "none" && cell.color !== DEFAULT_BG;
+        const isNo = cell.stitchId === "none";
         ctx.fillStyle = isNo ? "#C8C4BE" : cell.color;
         ctx.fillRect(oX + ci * scale, oY + ri * scale, scale, scale);
         ctx.strokeStyle = "#D0D0D0";
@@ -715,7 +734,7 @@ const Index = () => {
       while (ci < row.length) {
         const cell = row[ci];
         if (cell.spanOwner !== undefined && cell.spanOwner !== ci) { ci++; continue; }
-        const isNo = cell.stitchId === "none" && cell.color !== DEFAULT_BG;
+        const isNo = cell.stitchId === "none";
         if (isNo || (cell.stitchId !== "none" && cell.stitchId !== "knit")) {
           const span = getStitchSpan(cell.stitchId);
           const tw = Math.min(span, row.length - ci) * scale;
